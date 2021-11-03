@@ -80,9 +80,9 @@
 		pinctrl-0 = <&vol_keys_default>;
 
 		vol-down {
-			label = "Volume down";
-			gpios = <&pm8998_gpio 5 GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_VOLUMEDOWN>;
+			label = "Volume up";
+			gpios = <&pm8998_gpio 6 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_VOLUMEUP>;
 			debounce-interval = <15>;
 			wakeup-source;
 		};
@@ -313,7 +313,7 @@
 &pm8998_gpio {
 	vol_keys_default: vol-keys-default {
 		pinconf {
-			pins = "gpio5";
+			pins = "gpio6";
 			function = "normal";
 			bias-pull-up;
 			input-enable;
@@ -776,7 +776,7 @@
 		interrupts = <GIC_SPI 0x8 1 IRQ_TYPE_EDGE_BOTH>;
 		debounce = <15625>;
 		bias-pull-up;
-		linux,code = <KEY_VOLUMEUP>;
+		linux,code = <KEY_VOLUMEDOWN>;
 	};
 };
 
@@ -831,7 +831,7 @@
 	maximum-speed = "high-speed";
 
 	/* Force to peripheral until we can switch modes */
-	dr_mode = "host";
+	dr_mode = "peripheral";
 };
 
 &wifi {
