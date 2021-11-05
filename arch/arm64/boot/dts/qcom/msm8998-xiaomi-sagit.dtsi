@@ -8,13 +8,16 @@
 
 /dts-v1/;
 
-#include <dt-bindings/gpio/gpio.h>
-#include <dt-bindings/leds/common.h>
-#include <dt-bindings/pinctrl/qcom,pmic-gpio.h>
 #include "msm8998.dtsi"
+#include "pm8005.dtsi"
 #include "pm8998.dtsi"
 #include "pmi8998.dtsi"
-#include "pm8005.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
+#include <dt-bindings/pinctrl/qcom,pmic-gpio.h>
+#include <dt-bindings/sound/qcom,q6afe.h>
+#include <dt-bindings/sound/qcom,q6asm.h>
 
 / {
 	/* Required for bootloader to select correct board */
@@ -102,6 +105,19 @@
 			linux,code = <SW_LID>;
 			linux,can-disable;
 			wakeup-source;
+		};
+	};
+	
+	clocks {
+		compatible = "simple-bus";
+
+		div1_mclk: divclk1 {
+			compatible = "gpio-gate-clock";
+			pinctrl-0 = <&audio_mclk_pin>;
+			pinctrl-names = "default";
+			clocks = <&rpmcc RPM_SMD_DIV_CLK1>;
+			#clock-cells = <0>;
+			enable-gpios = <&pm8998_gpio 13 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -264,8 +280,8 @@
 	};
 };
 
-&blsp2_i2c3 {
-	status = "disabled";
+&blsp2_i2c4 {
+	status = "okay";
 
 	audio-codec@36 {
 		compatible = "nxp,tfa9890";
@@ -278,7 +294,7 @@
 
 		sound-name-prefix = "Mono Speaker";
 		#sound-dai-cells = <0>;
-		status = "disabled";
+		status = "okay";
 	};
 };
 
@@ -319,6 +335,12 @@
 			input-enable;
 			qcom,drive-strength = <PMIC_GPIO_STRENGTH_NO>;
 		};
+	};
+	
+	audio_mclk_pin: audio-mclk-pin-active {
+		pins = "gpio13";
+		function = "func2";
+		power-source = <0>;
 	};
 };
 
@@ -362,7 +384,7 @@
 &pmi8998_haptics {
 	status = "okay";
 
-	qcom,wave-play-rate-us = <4255>;
+	qcom,wave-play-rate-us = <5000>;
 };
 
 &qusb2phy {
@@ -650,6 +672,13 @@
 	regulator-soft-start;
 };
 
+&lpass_q6_smmu {
+	qcom,bypass-cbndx = /bits/ 8 <11>;
+	qcom,reset-nodisable-cbs = /bits/ 8 <12>;
+
+	status = "ok";
+};
+
 /* Adreno 540 GPU */
 &gpucc {
 	status = "ok";
@@ -677,7 +706,7 @@
  *       until the GPU CPR is brought up.
  */
 &pm8005_s1 {
-	regulator-min-microvolt = <988000>; /* 0,524V -> 0,988V */
+	regulator-min-microvolt = <1088000>; /* 0,524V -> 0,988V */
 	//regulator-max-microvolt = <1100000>;
 };
 
@@ -768,11 +797,71 @@
 		drive-strength = <6>;
 		bias-disable;
 	};
+	
+	msm_mclk0_default: msm-mclk0-active {
+		pins = "gpio13";
+		function = "cam_mclk";
+		drive-strength = <2>;
+		bias-disable;
+	};
+
+	msm_mclk1_default: msm-mclk1-active {
+		pins = "gpio14";
+		function = "cam_mclk";
+		drive-strength = <2>;
+		bias-disable;
+	};
+
+	cci1_default: cci1-default {
+		pins = "gpio18", "gpio19";
+		function = "cci_i2c";
+		bias-disable;
+		drive-strength = <2>;
+	};
+
+	cci1_default: cci1-default {
+		pins = "gpio19", "gpio20";
+		function = "cci_i2c";
+		bias-disable;
+		drive-strength = <2>;
+	};
+	
+	wcd_int_n: wcd-int-n {
+		pins = "gpio54";
+		function = "gpio";
+		bias-pull-down;
+		drive-strength = <2>;
+		input-enable;
+	};
+
+	cdc_reset_n: cdc-reset-n {
+		pins = "gpio64";
+		function = "gpio";
+		bias-pull-down;
+		drive-strength = <16>;
+		output-high;
+	};
+
+	wsa_leftspk_pwr_n: wsa-leftspk-pwr-n {
+		pins = "gpio65";
+		function = "gpio";
+		bias-disable;
+		drive-strength = <2>;
+		output-low;
+	};
+
+	wsa_rightspk_pwr_n: wsa-rightspk-pwr-n {
+		pins = "gpio66";
+		function = "gpio";
+		bias-disable;
+		drive-strength = <2>;
+		output-low;
+	};
 };
 
 &pm8998_pon {
 	resin {
-		compatible = "pm8941-resin";
+		compatible = "qcom,pm8941-resin";
 		interrupts = <GIC_SPI 0x8 1 IRQ_TYPE_EDGE_BOTH>;
 		debounce = <15625>;
 		bias-pull-up;
@@ -790,6 +879,274 @@
 	qcom,current-limit-microamp = <25000>;
 	qcom,num-strings = <4>;
 	qcom,enabled-strings = <0 1 2 3>;
+};
+
+&q6asmdai {
+	dai@0 {
+		reg = <0>;
+	};
+
+	dai@1 {
+		reg = <1>;
+	};
+
+	dai@2 {
+		reg = <2>;
+	};
+	dai@3 {
+		reg = <3>;
+//		direction = <2>;
+//		is-compress-dai;
+	};
+};
+
+&slimbam {
+	status = "okay";
+};
+
+&slim {
+	status = "okay";
+};
+
+&slim_ngd {
+	tasha_ifd: tas-ifd {
+		compatible = "slim217,1a0";
+		reg  = <0 0>;
+	};
+
+	wcd9335: codec@1{
+		compatible = "slim217,1a0";
+		reg  = <1 0>;
+
+		clock-names = "mclk", "slimbus";
+		clocks = <&div1_mclk>,
+			 <&rpmcc RPM_SMD_LN_BB_CLK1>;
+		#clock-cells = <0>;
+
+		interrupt-parent = <&tlmm>;
+		interrupts = <54 IRQ_TYPE_LEVEL_HIGH>,
+			     <53 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names  = "intr1", "intr2";
+		interrupt-controller;
+		#interrupt-cells = <1>;
+
+		reset-gpios = <&tlmm 64 GPIO_ACTIVE_HIGH>;
+
+		slim-ifc-dev  = <&tasha_ifd>;
+
+		vdd-buck-supply = <&vreg_s4a_1p8>;
+		vdd-buck-sido-supply = <&vreg_s4a_1p8>;
+		vdd-tx-supply = <&vreg_s4a_1p8>;
+		vdd-rx-supply = <&vreg_s4a_1p8>;
+		vdd-io-supply = <&vreg_s4a_1p8>;
+		qcom,mbhc-vthreshold = <1700>;
+
+		/* On SoMC Yoshino, HPHL is normally open, GND normally closed */
+		qcom,hphl-jack-type-normally-open;
+		//qcom,gnd-jack-type-normally-open;
+
+		#address-cells = <1>;
+		#size-cells = <1>;
+		#sound-dai-cells = <1>;
+
+		swm: swm@c85 {
+			compatible = "qcom,soundwire-v1.3.0";
+			reg = <0xc85 0x40>;
+			interrupts-extended = <&wcd9335 13>;
+
+			qcom,dout-ports	= <6>;
+			qcom,din-ports	= <2>;
+			qcom,ports-sinterval-low =/bits/ 8  <0x07 0x1F 0x3F 0x7 0x1F 0x3F 0x0F 0x0F>;
+			qcom,ports-offset1 = /bits/ 8 <0x01 0x02 0x0C 0x6 0x12 0x0D 0x07 0x0A >;
+			qcom,ports-offset2 = /bits/ 8 <0x00 0x00 0x1F 0x00 0x00 0x1F 0x00 0x00>;
+						    /*downstream is <0xFF 0x00 0x1F 0xFF 0x00 0x1F 0x00 0x00>;*/
+			qcom,ports-block-pack-mode = /bits/ 8 <0xFF 0xFF 0x01 0xFF 0xFF 0x01 0xFF 0xFF>;
+			clocks = <&xo>;
+			clock-names = "iface";
+			#address-cells = <2>;
+			#size-cells = <0>;
+			#sound-dai-cells = <1>;
+
+			left_spkr: wsa8810-left {
+				compatible = "sdw10217201000";
+				reg = <0 1>;
+				powerdown-gpios = <&tlmm 65 GPIO_ACTIVE_HIGH>;
+				pinctrl-0 = <&wsa_leftspk_pwr_n>;
+				pinctrl-names = "default";
+				#thermal-sensor-cells = <0>;
+				sound-name-prefix = "SpkrRight";
+				#sound-dai-cells = <0>;
+			};
+
+			right_spkr: wsa8810-right {
+				compatible = "sdw10217201000";
+				powerdown-gpios = <&tlmm 66 GPIO_ACTIVE_HIGH>;
+				reg = <0 2>;
+				pinctrl-0 = <&wsa_rightspk_pwr_n>;
+				pinctrl-names = "default";
+				#thermal-sensor-cells = <0>;
+				sound-name-prefix = "SpkrLeft";
+				#sound-dai-cells = <0>;
+			};
+		};
+	};
+};
+
+&sound {
+	compatible = "qcom,msm8998-sndcard";
+	model = "msm8988-Xiaomi-Mi6";
+
+	/* Audio routing including WSA amp speakers */
+	/*audio-routing = "AIF4 VI", "MCLK",
+			"RX_BIAS", "MCLK",
+			"MADINPUT", "MCLK",
+			"AMIC1", "MIC BIAS2",
+			"MIC BIAS2", "Handset Mic",
+			"AMIC2", "MIC BIAS2",
+			"MIC BIAS2", "Headset Mic",
+			"AMIC3", "MIC BIAS1",
+			"MIC BIAS1", "ANCRight Headset Mic",
+			"AMIC4", "MIC BIAS1",
+			"MIC BIAS1", "ANCLeft Headset Mic",
+			"AMIC5", "MIC BIAS4",
+			"MIC BIAS4", "Handset Mic",
+			"AMIC6", "MIC BIAS4",
+			"MIC BIAS4", "Analog Mic6";*/
+
+	/* Basic routing, 3.5mm jack only */
+	audio-routing = "RX_BIAS", "MCLK",
+			"AMIC2", "MIC BIAS2",
+			"AMIC3", "MIC BIAS3",
+			"DMIC0", "MIC BIAS1",
+			"DMIC4", "MIC BIAS4",
+			"MM_DL1", "MultiMedia1 Playback",
+			"MM_DL2", "MultiMedia2 Playback",
+			"MultiMedia3 Capture", "MM_UL3";
+
+/*
+   <path name="voicemmode1-call headphones">
+        <ctl name="SLIM_0_RX_Voice Mixer VoiceMMode1" value="1" />
+        <ctl name="VoiceMMode1_Tx Mixer SLIM_0_TX_MMode1" value="1" />
+    </path>
+
+    <path name="sidetone-headphones">
+        <path name="sidetone-iir" />
+        <!-- 45 % of 124 (range 0 - 124) Register: 0x340 -->
+        <ctl name="IIR0 INP0 Volume" value="44" />
+        <ctl name="RX INT1 MIX2 INP" value="SRC0" />
+        <ctl name="RX INT2 MIX2 INP" value="SRC0" />
+    </path>
+
+    <path name="speaker-and-headphones">
+        <path name="speaker" />
+        <ctl name="RX INT1_1 MIX1 INP0" value="RX1" />
+        <ctl name="RX INT2_1 MIX1 INP0" value="RX1" />
+        <ctl name="RX INT1 DEM MUX" value="CLSH_DSM_OUT" />
+        <ctl name="RX INT2 DEM MUX" value="CLSH_DSM_OUT" />
+        <ctl name="RX1 Digital Volume" value="55" />
+        <ctl name="RX2 Digital Volume" value="55" />
+        <path name="headphones-hpf" />
+        <ctl name="Set Custom Stereo" value="Mix" />
+    </path>
+
+    <path name="headphones">
+        <ctl name="SLIM RX0 MUX" value="AIF_MIX1_PB" />
+        <ctl name="SLIM RX1 MUX" value="AIF_MIX1_PB" />
+        <ctl name="SLIM_0_RX Channels" value="Two" />
+        <ctl name="RX INT1_1 MIX1 INP0" value="RX0" />
+        <ctl name="RX INT2_1 MIX1 INP0" value="RX1" />
+        <ctl name="RX INT1 DEM MUX" value="CLSH_DSM_OUT" />
+        <ctl name="RX INT2 DEM MUX" value="CLSH_DSM_OUT" />
+        <ctl name="RX1 Digital Volume" value="80" />
+        <ctl name="RX2 Digital Volume" value="80" />
+    </path>
+
+    <path name="headphones-hpf">
+        <ctl name="RX INT1_1 HPF cut off" value="CF_NEG_3DB_150HZ" />
+        <ctl name="RX INT2_1 HPF cut off" value="CF_NEG_3DB_150HZ" />
+    </path>
+
+
+    <path name="anc-off-headphone">
+        <ctl name="SLIM RX0 MUX" value="AIF_MIX1_PB" />
+        <ctl name="SLIM RX1 MUX" value="AIF_MIX1_PB" />
+        <ctl name="SLIM_0_RX Channels" value="Two" />
+        <ctl name="RX INT1_1 MIX1 INP0" value="RX0" />
+        <ctl name="RX INT2_1 MIX1 INP0" value="RX1" />
+        <ctl name="RX INT1 DEM MUX" value="CLSH_DSM_OUT" />
+        <ctl name="RX INT2 DEM MUX" value="CLSH_DSM_OUT" />
+        <ctl name="COMP1 Switch" value="0" />
+        <ctl name="COMP2 Switch" value="0" />
+        <ctl name="HPHL Volume" value="20" />
+        <ctl name="HPHR Volume" value="20" />
+        <ctl name="RX1 Digital Volume" value="77" />
+        <ctl name="RX2 Digital Volume" value="77" />
+    </path>
+
+    <path name="audio-record">
+        <ctl name="MultiMedia1 Mixer SLIM_0_TX" value="1" />
+    </path>
+
+   <path name="deep-buffer-playback">
+        <ctl name="SLIMBUS_0_RX Audio Mixer MultiMedia1" value="1" />
+    </path>
+*/
+
+	mm1-dai-link {
+		/* Deep Buffer playback for SLIM{0,7}, BT, USBAUDIO, AFE, DP, HDMI */
+		link-name = "MultiMedia1";
+		cpu {
+			sound-dai = <&q6asmdai  MSM_FRONTEND_DAI_MULTIMEDIA1>;
+		};
+	};
+
+	mm2-dai-link {
+		/* Multichannel playback for HDMI and DP */
+		link-name = "MultiMedia2";
+		cpu {
+			sound-dai = <&q6asmdai  MSM_FRONTEND_DAI_MULTIMEDIA2>;
+		};
+	};
+
+	mm3-dai-link {
+		/* Ultra Low Latency playback for SLIM0, HDMI, and DP */
+		link-name = "MultiMedia3";
+		cpu {
+			sound-dai = <&q6asmdai  MSM_FRONTEND_DAI_MULTIMEDIA3>;
+		};
+	};
+
+	slim-dai-link {
+		link-name = "SLIM Playback";
+		cpu {
+			sound-dai = <&q6afedai SLIMBUS_0_RX>;
+		};
+
+		platform {
+			sound-dai = <&q6routing>;
+		};
+
+		codec {
+			/* Support only sound through 3.5mm for now: soundwire is currently unavailable */
+			//sound-dai =  <&left_spkr>, <&right_spkr>, <&swm 0>, <&wcd9335 0>;
+			sound-dai =  <&wcd9335 0>;
+		};
+	};
+
+	slimcap-dai-link {
+		link-name = "SLIM Capture";
+		cpu {
+			sound-dai = <&q6afedai SLIMBUS_0_TX>;
+		};
+
+		platform {
+			sound-dai = <&q6routing>;
+		};
+
+		codec {
+			sound-dai = <&wcd9335 1>;
+		};
+	};
 };
 
 &ufshc {
