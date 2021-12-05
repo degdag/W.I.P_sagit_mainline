@@ -283,9 +283,9 @@
 &blsp2_i2c4 {
 	status = "okay";
 
-	audio-codec@36 {
+	audio-codec@34 {
 		compatible = "nxp,tfa9890";
-		reg = <0x36>;
+		reg = <0x34>;
 
 		/*
 		 * vddd-supply = <&vreg_bob>;
@@ -706,7 +706,7 @@
  *       until the GPU CPR is brought up.
  */
 &pm8005_s1 {
-	regulator-min-microvolt = <1088000>; /* 0,524V -> 0,988V */
+	regulator-min-microvolt = <988000>; /* 0,524V -> 0,988V */
 	//regulator-max-microvolt = <1100000>;
 };
 
@@ -1022,75 +1022,6 @@
 			"MM_DL1", "MultiMedia1 Playback",
 			"MM_DL2", "MultiMedia2 Playback",
 			"MultiMedia3 Capture", "MM_UL3";
-
-/*
-   <path name="voicemmode1-call headphones">
-        <ctl name="SLIM_0_RX_Voice Mixer VoiceMMode1" value="1" />
-        <ctl name="VoiceMMode1_Tx Mixer SLIM_0_TX_MMode1" value="1" />
-    </path>
-
-    <path name="sidetone-headphones">
-        <path name="sidetone-iir" />
-        <!-- 45 % of 124 (range 0 - 124) Register: 0x340 -->
-        <ctl name="IIR0 INP0 Volume" value="44" />
-        <ctl name="RX INT1 MIX2 INP" value="SRC0" />
-        <ctl name="RX INT2 MIX2 INP" value="SRC0" />
-    </path>
-
-    <path name="speaker-and-headphones">
-        <path name="speaker" />
-        <ctl name="RX INT1_1 MIX1 INP0" value="RX1" />
-        <ctl name="RX INT2_1 MIX1 INP0" value="RX1" />
-        <ctl name="RX INT1 DEM MUX" value="CLSH_DSM_OUT" />
-        <ctl name="RX INT2 DEM MUX" value="CLSH_DSM_OUT" />
-        <ctl name="RX1 Digital Volume" value="55" />
-        <ctl name="RX2 Digital Volume" value="55" />
-        <path name="headphones-hpf" />
-        <ctl name="Set Custom Stereo" value="Mix" />
-    </path>
-
-    <path name="headphones">
-        <ctl name="SLIM RX0 MUX" value="AIF_MIX1_PB" />
-        <ctl name="SLIM RX1 MUX" value="AIF_MIX1_PB" />
-        <ctl name="SLIM_0_RX Channels" value="Two" />
-        <ctl name="RX INT1_1 MIX1 INP0" value="RX0" />
-        <ctl name="RX INT2_1 MIX1 INP0" value="RX1" />
-        <ctl name="RX INT1 DEM MUX" value="CLSH_DSM_OUT" />
-        <ctl name="RX INT2 DEM MUX" value="CLSH_DSM_OUT" />
-        <ctl name="RX1 Digital Volume" value="80" />
-        <ctl name="RX2 Digital Volume" value="80" />
-    </path>
-
-    <path name="headphones-hpf">
-        <ctl name="RX INT1_1 HPF cut off" value="CF_NEG_3DB_150HZ" />
-        <ctl name="RX INT2_1 HPF cut off" value="CF_NEG_3DB_150HZ" />
-    </path>
-
-
-    <path name="anc-off-headphone">
-        <ctl name="SLIM RX0 MUX" value="AIF_MIX1_PB" />
-        <ctl name="SLIM RX1 MUX" value="AIF_MIX1_PB" />
-        <ctl name="SLIM_0_RX Channels" value="Two" />
-        <ctl name="RX INT1_1 MIX1 INP0" value="RX0" />
-        <ctl name="RX INT2_1 MIX1 INP0" value="RX1" />
-        <ctl name="RX INT1 DEM MUX" value="CLSH_DSM_OUT" />
-        <ctl name="RX INT2 DEM MUX" value="CLSH_DSM_OUT" />
-        <ctl name="COMP1 Switch" value="0" />
-        <ctl name="COMP2 Switch" value="0" />
-        <ctl name="HPHL Volume" value="20" />
-        <ctl name="HPHR Volume" value="20" />
-        <ctl name="RX1 Digital Volume" value="77" />
-        <ctl name="RX2 Digital Volume" value="77" />
-    </path>
-
-    <path name="audio-record">
-        <ctl name="MultiMedia1 Mixer SLIM_0_TX" value="1" />
-    </path>
-
-   <path name="deep-buffer-playback">
-        <ctl name="SLIMBUS_0_RX Audio Mixer MultiMedia1" value="1" />
-    </path>
-*/
 
 	mm1-dai-link {
 		/* Deep Buffer playback for SLIM{0,7}, BT, USBAUDIO, AFE, DP, HDMI */
