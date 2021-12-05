@@ -283,7 +283,7 @@
 &blsp2_i2c4 {
 	status = "okay";
 
-	audio-codec@34 {
+	tfa9890_codec:audio-codec@34 {
 		compatible = "nxp,tfa9890";
 		reg = <0x34>;
 
@@ -881,6 +881,18 @@
 	qcom,enabled-strings = <0 1 2 3>;
 };
 
+&q6afedai {
+	qi2s@22 {
+		reg = <22>;
+		qcom,sd-lines = <1>;
+	};
+
+	qi2s@23 {
+		reg = <23>;
+		qcom,sd-lines = <0>;
+	};
+ };
+
 &q6asmdai {
 	dai@0 {
 		reg = <0>;
@@ -1046,6 +1058,23 @@
 			sound-dai = <&q6asmdai  MSM_FRONTEND_DAI_MULTIMEDIA3>;
 		};
 	};
+
+        speaker-dai-link {
+		link-name = "Speaker Playback";
+		cpu {
+			sound-dai = <&q6afedai QUATERNARY_MI2S_RX>;
+		};
+
+		platform {
+			sound-dai = <&q6routing>;
+		};
+
+                codec {
+			sound-dai = <&tfa9890_codec 0>;
+		};
+
+	};
+
 
 	slim-dai-link {
 		link-name = "SLIM Playback";
